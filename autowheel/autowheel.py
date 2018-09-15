@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 
@@ -15,19 +17,19 @@ from cibuildwheel.__main__ import main as cibuildwheel
 
 def process(target_platform=None, package_name=None, python_versions=None, wheelhouse_dir=None):
 
-    print(f'Processing {package_name}')
+    print('Processing {package_name}'.format(package_name=package_name))
 
     versions = [LooseVersion(version) for version in python_versions]
 
     min_version = min(versions)
 
-    pypi_data = requests.get(f'https://pypi.org/pypi/{package_name}/json').json()
+    pypi_data = requests.get('https://pypi.org/pypi/{package_name}/json'.format(package_name=package_name)).json()
 
     start_dir = os.path.abspath('.')
 
     for release in pypi_data['releases']:
 
-        print(f'Release: {release}... ', end='')
+        print('Release: {release}... '.format(release=release), end='')
 
         if LooseVersion(release) < min_version:
             print('skipping')
@@ -78,15 +80,15 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
         tmpdir = tempfile.mkdtemp()
         try:
 
-            print(f'Changing to {tmpdir}')
+            print('Changing to {0}'.format(tmpdir))
             os.chdir(tmpdir)
 
-            print(f'  Fetching {sdist["url"]}')
+            print('  Fetching {0}'.format(sdist["url"]))
             req = requests.get(sdist['url'])
             with open(sdist['filename'], 'wb') as f:
                 f.write(req.content)
 
-            print(f'  Expanding {sdist["filename"]}')
+            print('  Expanding {0}'.format(sdist["filename"]))
             tar = tarfile.open(sdist['filename'], 'r:gz')
             tar.extractall(path='.')
 
@@ -95,12 +97,12 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
             paths.remove(sdist['filename'])
             if len(paths) > 1:
                 raise ValueError('Unexpected files/directories:', paths)
-            print(f'  Go into directory {paths[0]}')
+            print('  Go into directory {0}'.format(paths[0]))
             os.chdir(paths[0])
 
-            print(f'  Running cibuildwheel')
+            print('  Running cibuildwheel')
 
-            sys.argv[1] = '.'
+            sys.argv = ['cibuildwheel', '.']
             os.environ['CIBW_PLATFORM'] = target_platform
             os.environ['CIBW_OUTPUT_DIR'] = wheelhouse_dir
 
@@ -115,6 +117,8 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
 @click.argument('platform', type=click.Choice(['macos', 'windows', 'linux']))
 @click.argument('wheelhouse_dir', type=click.Path(exists=True))
 def main(platform, wheelhouse_dir):
+
+    wheelhouse_dir = os.path.abspath(wheelhouse_dir)
 
     with open('autowheel.yml') as f:
         packages = load(f)
