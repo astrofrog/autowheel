@@ -103,8 +103,8 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
             print('  Running cibuildwheel')
 
             sys.argv = ['cibuildwheel', '.']
-            os.environ['CIBW_PLATFORM'] = target_platform
-            os.environ['CIBW_OUTPUT_DIR'] = output_dir
+            os.environ['CIBW_PLATFORM'] = str(target_platform)
+            os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
 
             cibuildwheel()
 
