@@ -15,7 +15,7 @@ from cibuildwheel.__main__ import main as cibuildwheel
 
 
 
-def process(target_platform=None, package_name=None, python_versions=None, wheelhouse_dir=None):
+def process(target_platform=None, package_name=None, python_versions=None, output_dir=None):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -104,7 +104,7 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
 
             sys.argv = ['cibuildwheel', '.']
             os.environ['CIBW_PLATFORM'] = target_platform
-            os.environ['CIBW_OUTPUT_DIR'] = wheelhouse_dir
+            os.environ['CIBW_OUTPUT_DIR'] = output_dir
 
             cibuildwheel()
 
@@ -116,12 +116,12 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
 @click.command()
 @click.argument('platform', type=click.Choice(['macos', 'windows', 'linux', 'osx']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
-def main(platform, wheelhouse_dir):
+def main(platform, output_dir):
 
     if platform == 'osx':
         platform = 'macos'
 
-    wheelhouse_dir = os.path.abspath(wheelhouse_dir)
+    output_dir = os.path.abspath(output_dir)
 
     with open('autowheel.yml') as f:
         packages = load(f)
@@ -130,4 +130,4 @@ def main(platform, wheelhouse_dir):
         process(target_platform=platform,
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
-                wheelhouse_dir=wheelhouse_dir)
+                output_dir=output_dir)
