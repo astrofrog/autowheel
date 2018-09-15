@@ -11,7 +11,7 @@ matrix:
       env: PIP=pip2
 
 install:
-  - python setup.py develop
+  - pip install .
 
 script:
   - cd tests
