@@ -4,7 +4,7 @@ environment:
     CIBW_SKIP: "cp33-* cp34-* cp37-*"
 
 install:
-  - $PIP install .
+  - pip install .
 
 build_script:
   - cd tests
