@@ -1,0 +1,17 @@
+environment:
+  global:
+    CIBW_BEFORE_BUILD: "pip install numpy==1.12.1"
+    CIBW_SKIP: "cp33-* cp34-* cp37-*"
+
+install:
+  - $PIP install .
+
+build_script:
+  - cd tests
+  - mkdir wheelhouse
+  - autowheel $TRAVIS_OS_NAME --output-dir=wheelhouse --ignore-existing
+  - dir wheelhouse
+
+artifacts:
+  - path: "tests\\wheelhouse\\*.whl"
+    name: Wheels
