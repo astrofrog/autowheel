@@ -4,6 +4,7 @@ environment:
     CIBW_SKIP: "cp33-* cp34-* cp37-*"
 
 install:
+  - pip install numpy==1.12.1
   - pip install .
 
 build_script:
