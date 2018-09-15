@@ -1,0 +1,8 @@
+- package_name: mpl-scatter-density
+  python_versions:
+    '0.1':
+      - cp27
+      - cp34
+      - cp35
+      - cp36
+      - cp37
