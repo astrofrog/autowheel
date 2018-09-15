@@ -2,7 +2,7 @@ language: python
 
 env:
   global:
-    - CIBW_BEFORE_BUILD='pip install numpy==1.10.4'
+    - CIBW_BEFORE_BUILD='pip install numpy==1.12.1'
     - CIBW_SKIP='cp33-* cp34-* cp37-*'
 
 matrix:
