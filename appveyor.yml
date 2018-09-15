@@ -9,7 +9,7 @@ install:
 build_script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel $TRAVIS_OS_NAME --output-dir=wheelhouse --ignore-existing
+  - autowheel windows --output-dir=wheelhouse --ignore-existing
   - dir wheelhouse
 
 artifacts:
