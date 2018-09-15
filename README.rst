@@ -6,6 +6,12 @@ This package is a wrapper around the
 easy to automate building wheels from PyPI source releases rather than
 for a source repository.
 
+Note that this is intended to be used with packages that require
+platform-specific wheels. If you have a pure-Python package, you can probably
+just build a universal wheel with::
+
+    python setup.py bdist_wheel --universal
+
 To use this, you should first follow the instructions for setting up
 `cibuildwheel <https://github.com/joerick/cibuildwheel>`_, but instead of
 running::
@@ -42,6 +48,8 @@ the version is not one of the ones listed, the latest one that is equal or less
 than the required one will be used - in the above example, version 0.1.1 would
 be built with the same Python versions as 0.1, and 0.3 would be built with the
 same versions as 0.2.
+
+You can list multiple packages inside a single ``autowheel.yml`` file.
 
 The way autowheel works is that it will look at all the releases of the package
 on PyPI that are more recent than the oldest version mentioned in the

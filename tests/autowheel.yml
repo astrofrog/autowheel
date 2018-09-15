@@ -1,4 +1,4 @@
-- package_name: mpl-scatter-density
+- package_name: fast-histogram
   python_versions:
     '0.1':
       - cp27

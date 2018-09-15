@@ -15,7 +15,7 @@ from cibuildwheel.__main__ import main as cibuildwheel
 
 
 
-def process(target_platform=None, package_name=None, python_versions=None, output_dir=None):
+def process(target_platform=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -71,7 +71,7 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
 
         missing = sorted(set(required_pythons) - set(wheels[target_platform]))
 
-        if not missing:
+        if not missing and not ignore_existing:
             print('all wheels present')
             continue
 
@@ -116,7 +116,8 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
 @click.command()
 @click.argument('platform', type=click.Choice(['macos', 'windows', 'linux', 'osx']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
-def main(platform, output_dir):
+@click.option('--ignore-existing/--no-ignore-existing', default=False)
+def main(platform, output_dir, ignore_existing):
 
     if platform == 'osx':
         platform = 'macos'
@@ -130,4 +131,5 @@ def main(platform, output_dir):
         process(target_platform=platform,
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
-                output_dir=output_dir)
+                output_dir=output_dir,
+                ignore_existing=ignore_existing)

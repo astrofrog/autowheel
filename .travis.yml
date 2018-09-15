@@ -16,5 +16,5 @@ install:
 script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel $TRAVIS_OS_NAME --output-dir=wheelhouse
+  - autowheel $TRAVIS_OS_NAME --output-dir=wheelhouse --ignore-existing
   - ls wheelhouse
