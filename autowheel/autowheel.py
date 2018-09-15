@@ -115,7 +115,7 @@ def process(target_platform=None, package_name=None, python_versions=None, wheel
 
 @click.command()
 @click.argument('platform', type=click.Choice(['macos', 'windows', 'linux', 'osx']))
-@click.argument('wheelhouse_dir', type=click.Path(exists=True))
+@click.option('--output-dir', type=click.Path(exists=True), default='.')
 def main(platform, wheelhouse_dir):
 
     if platform == 'osx':
