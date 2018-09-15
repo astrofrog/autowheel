@@ -1,4 +1,5 @@
-### About
+About
+-----
 
 This package is a wrapper around the
 `cibuildwheel <https://github.com/joerick/cibuildwheel>`_ tool, and makes it
