@@ -42,3 +42,9 @@ the version is not one of the ones listed, the latest one that is equal or less
 than the required one will be used - in the above example, version 0.1.1 would
 be built with the same Python versions as 0.1, and 0.3 would be built with the
 same versions as 0.2.
+
+The way autowheel works is that it will look at all the releases of the package
+on PyPI that are more recent than the oldest version mentioned in the
+``autowheel.yml`` file, and for each of them it will determine whether any
+wheels are missing. If so, then wheel are built for all Python versions
+specified, and placed in the output directory.
