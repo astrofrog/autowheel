@@ -61,7 +61,7 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
                 elif 'win_amd64' in filename:
                     platform = 'windows64'
                 else:
-                    raise ValueError("Could not determine platform:", filename)
+                    continue
                 wheels[platform].append(python_version)
             elif fileinfo['packagetype'] == 'sdist':
                 sdist = fileinfo
