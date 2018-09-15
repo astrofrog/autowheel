@@ -11,10 +11,10 @@ matrix:
       env: PIP=pip2
 
 install:
-  - pip install .
+  - $PIP install .
 
 script:
   - cd tests
   - mkdir wheelhouse
-  - autowheeel $TRAVIS_OS_NAME wheelhouse
+  - autowheel $TRAVIS_OS_NAME wheelhouse
   - ls wheelhouse
