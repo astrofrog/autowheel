@@ -1,4 +1,5 @@
 - package_name: fast-histogram
+  before_build: pip install numpy==1.12.1
   python_versions:
     '0.1':
       - cp27

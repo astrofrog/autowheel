@@ -15,7 +15,7 @@ from cibuildwheel.__main__ import main as cibuildwheel
 
 
 
-def process(target_platform=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
+def process(target_platform=None, before_build=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -105,6 +105,8 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
             sys.argv = ['cibuildwheel', '.']
             os.environ['CIBW_PLATFORM'] = str(target_platform)
             os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
+            if before_build:
+                os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
 
             sys.exit(cibuildwheel())
 
@@ -129,6 +131,7 @@ def main(platform, output_dir, ignore_existing):
 
     for package in packages:
         process(target_platform=platform,
+                before_build=package.get('before_build', None),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
                 output_dir=output_dir,
