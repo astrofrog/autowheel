@@ -1,5 +1,4 @@
-.. image:: https://travis-ci.org/astrofrog/autowheel.svg?branch=master
-    :target: https://travis-ci.org/astrofrog/autowheel
+|Travis| |AppVeyor|
     
 About
 -----
@@ -68,3 +67,9 @@ on PyPI that are more recent than the oldest version mentioned in the
 ``autowheel.yml`` file, and for each of them it will determine whether any
 wheels are missing. If so, then wheel are built for all Python versions
 specified, and placed in the output directory.
+
+.. |Travis| image:: https://travis-ci.org/astrofrog/autowheel.svg?branch=master
+    :target: https://travis-ci.org/astrofrog/autowheel
+
+.. |AppVeyor| image:: https://ci.appveyor.com/api/projects/status/9n8kr8gnvlrj3lqi/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/astrofrog/autowheel
