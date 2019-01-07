@@ -14,7 +14,9 @@ from collections import defaultdict
 from cibuildwheel.__main__ import main as cibuildwheel
 
 
-def process(target_platform=None, before_build=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
+def process(target_platform=None, before_build=None, package_name=None,
+            python_versions=None, output_dir=None, ignore_existing=False,
+            test_command=None, test_requires=None):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -123,6 +125,10 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
             os.environ['CIBW_BUILD'] = ' '.join([pyver + '-*' for pyver in missing])
             os.environ['CIBW_PLATFORM'] = str(target_platform)
             os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
+            if test_command:
+                os.environ['CIBW_TEST_COMMAND'] = str(test_command)
+            if test_requires:
+                os.environ['CIBW_TEST_REQUIRES'] = str(test_requires)
             if before_build:
                 os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
 
@@ -160,5 +166,7 @@ def main(platform, output_dir, ignore_existing):
                 before_build=package.get('before_build', None),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
+                test_command=package['test_command'],
+                test_requires=package['test_requires'],
                 output_dir=output_dir,
                 ignore_existing=ignore_existing)
