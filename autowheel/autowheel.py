@@ -103,10 +103,15 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
             print('  Running cibuildwheel')
 
             sys.argv = ['cibuildwheel', '.']
+            os.environ['CIBW_BUILD'] = ''.join([pyver + '-*' for pyver in missing])
             os.environ['CIBW_PLATFORM'] = str(target_platform)
             os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
             if before_build:
                 os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
+
+            for key, value in os.environ.items():
+                if key.startswith('CIBW'):
+                    print('{0}: {1}'.format(key, value))
 
             sys.exit(cibuildwheel())
 
