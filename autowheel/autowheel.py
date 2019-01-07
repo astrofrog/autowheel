@@ -130,10 +130,11 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
                 if key.startswith('CIBW'):
                     print('{0}: {1}'.format(key, value))
 
-            retcode = cibuildwheel()
-
-            if retcode != 0:
-                sys.exit(retcode)
+            try:
+                cibuildwheel()
+            except SystemExit as exc:
+                if exc.code != 0:
+                    raise
 
         finally:
 
