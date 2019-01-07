@@ -5,6 +5,4 @@
   python_versions:
     '0.5':
       - cp27
-      - cp34
       - cp36
-      - cp37
