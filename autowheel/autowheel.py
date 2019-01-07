@@ -131,7 +131,7 @@ def main(platform, output_dir, ignore_existing):
 
     for package in packages:
         process(target_platform=platform,
-                before_build=package['before_build'],
+                before_build=package.get('before_build', None),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
                 output_dir=output_dir,
