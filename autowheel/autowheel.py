@@ -14,7 +14,6 @@ from collections import defaultdict
 from cibuildwheel.__main__ import main as cibuildwheel
 
 
-
 def process(target_platform=None, before_build=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
 
     print('Processing {package_name}'.format(package_name=package_name))
@@ -113,7 +112,10 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
                 if key.startswith('CIBW'):
                     print('{0}: {1}'.format(key, value))
 
-            sys.exit(cibuildwheel())
+            retcode = cibuildwheel()
+
+            if retcode != 0:
+                sys.exit(retcode)
 
         finally:
 
