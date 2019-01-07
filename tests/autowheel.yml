@@ -1,9 +1,9 @@
 - package_name: fast-histogram
   before_build: pip install numpy==1.12.1
-  test_command: pytest --pyargs fast_histogram
+  test_command: pytest -p no:warnings --pyargs fast_histogram
   test_requires: pytest hypothesis
   python_versions:
-    '0.1':
+    '0.5':
       - cp27
       - cp34
       - cp36
