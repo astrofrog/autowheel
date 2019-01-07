@@ -132,6 +132,8 @@ def process(target_platform=None, before_build=None, package_name=None,
             if before_build:
                 os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
 
+            os.environ['CIBW_BUILD_VERBOSITY'] = '3'
+
             for key, value in os.environ.items():
                 if key.startswith('CIBW'):
                     print('{0}: {1}'.format(key, value))
