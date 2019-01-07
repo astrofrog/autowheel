@@ -106,7 +106,7 @@ def process(target_platform=None, package_name=None, python_versions=None, outpu
             os.environ['CIBW_PLATFORM'] = str(target_platform)
             os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
 
-            cibuildwheel()
+            sys.exit(cibuildwheel())
 
         finally:
 
