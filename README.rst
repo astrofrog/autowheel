@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/astrofrog/autowheel.svg?branch=master
+    :target: https://travis-ci.org/astrofrog/autowheel
+    
 About
 -----
 
@@ -48,6 +51,15 @@ the version is not one of the ones listed, the latest one that is equal or less
 than the required one will be used - in the above example, version 0.1.1 would
 be built with the same Python versions as 0.1, and 0.3 would be built with the
 same versions as 0.2.
+
+Note that you can also specify a ``before_build`` key with a command that should
+be run before the wheel is built, e.g.::
+
+    - package_name: fast-histogram
+      before_build: pip install numpy==1.12.1
+      python_versions:
+        '0.1':
+          - cp27
 
 You can list multiple packages inside a single ``autowheel.yml`` file.
 
