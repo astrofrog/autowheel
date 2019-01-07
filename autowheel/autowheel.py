@@ -18,28 +18,46 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
 
     print('Processing {package_name}'.format(package_name=package_name))
 
-    versions = [LooseVersion(version) for version in python_versions]
+    # The keys of the python_versions dictionary are versions of the package.
+    # For example, the dictionary might be:
+    #
+    #    {'0.1': ['cp27', 'cp35'], '0.2': ['cp27', 'cp35', 'cp36']}
+    #
+    # which means that package versions in the range [0.1:0.2) will be built for
+    # Python 2.7 and 3.5, and versions greater or equal to 0.2 will also be
+    # built for Python 3.6. Versions before 0.1 won't be built.
+    package_versions = [LooseVersion(package_version) for package_version in python_versions]
+    min_package_version = min(package_versions)
 
-    min_version = min(versions)
-
+    # Prepare PyPI URL
     pypi_data = requests.get('https://pypi.org/pypi/{package_name}/json'.format(package_name=package_name)).json()
 
+    # Remember where we started - if anything goes wrong we'll go back there
+    # at the end.
     start_dir = os.path.abspath('.')
 
-    for release in pypi_data['releases']:
+    # Loop over all releases on PyPI, and check what wheels should be built for
+    # each release. Wheels that already exist on PyPI won't be built since they
+    # can't be replaced.
+    for release_version in pypi_data['releases']:
 
-        print('Release: {release}... '.format(release=release), end='')
+        print('Release: {release_version}... '.format(release_version=release_version), end='')
 
-        if LooseVersion(release) < min_version:
+        if LooseVersion(release_version) < min_package_version:
             print('skipping')
             continue
 
-        release_version = release.split('rc')[0]
-        matching_version = max([version for version in versions if version <= LooseVersion(release_version)])
+        # Find the package version in the config that is equal to or is the most
+        # recent one before the target release.
+        matching_version = max([package_version for package_version in package_versions if package_version <= LooseVersion(release_version)])
 
+        # Figure out which Python versions are requested in the config
         required_pythons = python_versions[str(matching_version)]
 
-        files = pypi_data['releases'][release]
+        # Now determine which Python versions have already been built for the
+        # target OS.
+
+        files = pypi_data['releases'][release_version]
 
         wheels = defaultdict(list)
 
