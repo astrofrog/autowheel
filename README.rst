@@ -14,7 +14,7 @@ just build a universal wheel with::
 
     python setup.py bdist_wheel --universal
 
-To use this, you should first follow the instructions for setting up
+To use autowheel, you should first follow the instructions for setting up
 `cibuildwheel <https://github.com/joerick/cibuildwheel>`_, but instead of
 running::
 
