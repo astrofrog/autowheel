@@ -132,7 +132,7 @@ def process(platform_tag=None, before_build=None, package_name=None,
                 os.environ['CIBW_BUILD'] = "{0}-{1}".format(python_tag, platform_tag)
 
                 if pin_numpy:
-                    pinned_version = MIN_NUMPY[python_tag, platform_tag]
+                    pinned_version = MIN_NUMPY[python_tag][platform_tag]
                     os.environ['CIBW_BEFORE_BUILD'] = 'pip install numpy=={0}'.format(pinned_version)
                 elif before_build:
                     os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
