@@ -1,6 +1,6 @@
 - package_name: fast-histogram
   pin_numpy: true
-  test_command: pytest -p no:warnings --pyargs fast_histogram -k test_1d_compare_with_numpy
+  test_command: pytest -p no:warnings --pyargs fast_histogram -k test_non_contiguous
   test_requires: pytest hypothesis
   python_versions:
     '0.7':
