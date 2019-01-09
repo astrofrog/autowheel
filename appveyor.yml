@@ -1,15 +1,11 @@
-environment:
-  global:
-    CIBW_SKIP: "cp33-* cp34-* cp37-*"
-
 install:
-  - pip install numpy==1.12.1
   - pip install .
 
 build_script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel windows --output-dir=wheelhouse --ignore-existing
+  - autowheel windows32 --output-dir=wheelhouse --ignore-existing
+  - autowheel windows64 --output-dir=wheelhouse --ignore-existing
   - dir wheelhouse
 
 artifacts:

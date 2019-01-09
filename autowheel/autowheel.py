@@ -13,8 +13,12 @@ from collections import defaultdict
 
 from cibuildwheel.__main__ import main as cibuildwheel
 
+from .numpy import MIN_NUMPY
+from .config import PYTHON_TAGS, PLATFORM_TAGS
 
-def process(target_platform=None, before_build=None, package_name=None, python_versions=None, output_dir=None, ignore_existing=False):
+def process(platform_tag=None, before_build=None, package_name=None,
+            python_versions=None, output_dir=None, ignore_existing=False,
+            test_command=None, test_requires=None, pin_numpy=False):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -59,34 +63,21 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
 
         files = pypi_data['releases'][release_version]
 
-        wheels = defaultdict(list)
+        wheels_pythons = []
 
         sdist = None
 
         for fileinfo in files:
             if fileinfo['packagetype'] == 'bdist_wheel':
                 filename = fileinfo['filename']
-                python_version = filename.split('-')[2]
-                if 'macosx' in filename:
-                    platform = 'macos'
-                elif 'manylinux1_x86_64' in filename:
-                    platform = 'linux32'
-                elif 'manylinux1_i686' in filename:
-                    platform = 'linux64'
-                elif 'win32' in filename:
-                    platform = 'windows32'
-                elif 'win_amd64' in filename:
-                    platform = 'windows64'
-                else:
-                    continue
-                wheels[platform].append(python_version)
+                if platform_tag in filename:
+                    for python_tag in PYTHON_TAGS:
+                        if python_tag in filename:
+                            wheels_pythons.append(python_tag)
             elif fileinfo['packagetype'] == 'sdist':
                 sdist = fileinfo
 
-        wheels['windows'] = set(wheels['windows32']) & set(wheels['windows64'])
-        wheels['linux'] = set(wheels['linux32']) & set(wheels['linux64'])
-
-        missing = sorted(set(required_pythons) - set(wheels[target_platform]))
+        missing = sorted(set(required_pythons) - set(wheels_pythons))
 
         if not missing and not ignore_existing:
             print('all wheels present')
@@ -120,21 +111,41 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
             print('  Running cibuildwheel')
 
             sys.argv = ['cibuildwheel', '.']
-            os.environ['CIBW_BUILD'] = ' '.join([pyver + '-*' for pyver in missing])
-            os.environ['CIBW_PLATFORM'] = str(target_platform)
+
+            if 'mac' in platform_tag:
+                os.environ['CIBW_PLATFORM'] = 'macos'
+            elif 'linux' in platform_tag:
+                os.environ['CIBW_PLATFORM'] = 'linux'
+            else:
+                os.environ['CIBW_PLATFORM'] = 'windows'
+
             os.environ['CIBW_OUTPUT_DIR'] = str(output_dir)
-            if before_build:
-                os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
+            if test_command:
+                os.environ['CIBW_TEST_COMMAND'] = str(test_command)
+            if test_requires:
+                os.environ['CIBW_TEST_REQUIRES'] = str(test_requires)
 
-            for key, value in os.environ.items():
-                if key.startswith('CIBW'):
-                    print('{0}: {1}'.format(key, value))
+            os.environ['CIBW_BUILD_VERBOSITY'] = '3'
 
-            try:
-                cibuildwheel()
-            except SystemExit as exc:
-                if exc.code != 0:
-                    raise
+            for python_tag in missing:
+
+                os.environ['CIBW_BUILD'] = "{0}-{1}".format(python_tag, platform_tag)
+
+                if pin_numpy:
+                    pinned_version = MIN_NUMPY[python_tag][platform_tag]
+                    os.environ['CIBW_BEFORE_BUILD'] = 'pip install numpy=={0}'.format(pinned_version)
+                elif before_build:
+                    os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
+
+                for key, value in os.environ.items():
+                    if key.startswith('CIBW'):
+                        print('{0}: {1}'.format(key, value))
+
+                try:
+                    cibuildwheel()
+                except SystemExit as exc:
+                    if exc.code != 0:
+                        raise
 
         finally:
 
@@ -142,13 +153,10 @@ def process(target_platform=None, before_build=None, package_name=None, python_v
 
 
 @click.command()
-@click.argument('platform', type=click.Choice(['macos', 'windows', 'linux', 'osx']))
+@click.argument('platform', type=click.Choice(['macosx', 'windows32', 'windows64', 'linux32', 'linux64']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
 @click.option('--ignore-existing/--no-ignore-existing', default=False)
 def main(platform, output_dir, ignore_existing):
-
-    if platform == 'osx':
-        platform = 'macos'
 
     output_dir = os.path.abspath(output_dir)
 
@@ -156,9 +164,12 @@ def main(platform, output_dir, ignore_existing):
         packages = load(f)
 
     for package in packages:
-        process(target_platform=platform,
+        process(platform_tag=PLATFORM_TAGS[platform],
                 before_build=package.get('before_build', None),
+                pin_numpy=package.get('pin_numpy', False),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
+                test_command=package['test_command'],
+                test_requires=package['test_requires'],
                 output_dir=output_dir,
                 ignore_existing=ignore_existing)

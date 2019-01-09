@@ -1,18 +1,21 @@
 language: python
 
-env:
-  global:
-    - CIBW_SKIP='cp33-* cp34-* cp37-*'
-
 matrix:
   include:
     - sudo: required
       services:
         - docker
       env: PIP=pip
+           PLATFORM=linux32
+    - sudo: required
+      services:
+        - docker
+      env: PIP=pip
+           PLATFORM=linux64
     - os: osx
       language: generic
       env: PIP=pip2
+           PLATFORM=macosx
 
 install:
   - $PIP install .
@@ -20,5 +23,5 @@ install:
 script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel $TRAVIS_OS_NAME --output-dir=wheelhouse --ignore-existing
+  - autowheel $PLATFORM --output-dir=wheelhouse --ignore-existing
   - ls wheelhouse
