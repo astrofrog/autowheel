@@ -3,6 +3,6 @@
   test_command: pytest -p no:warnings --pyargs fast_histogram -k test_1d_compare_with_numpy
   test_requires: pytest hypothesis
   python_versions:
-    '0.6':
+    '0.7':
       - cp27
       - cp36
