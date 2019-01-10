@@ -4,8 +4,8 @@ install:
 build_script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel windows32 --output-dir=wheelhouse --ignore-existing
-  - autowheel windows64 --output-dir=wheelhouse --ignore-existing
+  - autowheel windows32 --output-dir=wheelhouse --build-existing
+  - autowheel windows64 --output-dir=wheelhouse --build-existing
   - dir wheelhouse
 
 artifacts:

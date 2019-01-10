@@ -21,7 +21,8 @@ install:
   - $PIP install .
 
 script:
+  - python setup.py check --restructuredtext
   - cd tests
   - mkdir wheelhouse
-  - autowheel $PLATFORM --output-dir=wheelhouse --ignore-existing
+  - autowheel $PLATFORM --output-dir=wheelhouse --build-existing
   - ls wheelhouse

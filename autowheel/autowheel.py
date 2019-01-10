@@ -6,19 +6,20 @@ import sys
 import click
 import tarfile
 import tempfile
+from distutils.version import LooseVersion
+
 import requests
 from yaml import load
-from distutils.version import LooseVersion
-from collections import defaultdict
 
 from cibuildwheel.__main__ import main as cibuildwheel
 
 from .numpy import MIN_NUMPY
 from .config import PYTHON_TAGS, PLATFORM_TAGS
 
+
 def process(platform_tag=None, before_build=None, package_name=None,
-            python_versions=None, output_dir=None, ignore_existing=False,
-            test_command=None, test_requires=None, pin_numpy=False):
+            python_versions=None, output_dir=None, build_existing=False,
+            test_command=None, test_requires=None, pin_numpy=False, pin_numpy_min=None):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -30,6 +31,10 @@ def process(platform_tag=None, before_build=None, package_name=None,
     # which means that package versions in the range [0.1:0.2) will be built for
     # Python 2.7 and 3.5, and versions greater or equal to 0.2 will also be
     # built for Python 3.6. Versions before 0.1 won't be built.
+
+    # Start off by finding all specified package versions (as mentioned above,
+    # these are just the versions where the required Python versions change, but
+    # all versions in between and more recent will be checked/built too)
     package_versions = [LooseVersion(package_version) for package_version in python_versions]
     min_package_version = min(package_versions)
 
@@ -47,26 +52,27 @@ def process(platform_tag=None, before_build=None, package_name=None,
 
         print('Release: {release_version}... '.format(release_version=release_version), end='')
 
+        # Any package version older than the oldest specified one shouldn't be built
         if LooseVersion(release_version) < min_package_version:
             print('skipping')
             continue
 
         # Find the package version in the config that is equal to or is the most
         # recent one before the target release.
-        matching_version = max([package_version for package_version in package_versions if package_version <= LooseVersion(release_version)])
+        matching_version = max([package_version
+                                for package_version in package_versions
+                                if package_version <= LooseVersion(release_version)])
 
         # Figure out which Python versions are requested in the config
         required_pythons = python_versions[str(matching_version)]
 
         # Now determine which Python versions have already been built for the
-        # target OS.
+        # target OS and are on PyPI.
 
         files = pypi_data['releases'][release_version]
 
         wheels_pythons = []
-
         sdist = None
-
         for fileinfo in files:
             if fileinfo['packagetype'] == 'bdist_wheel':
                 filename = fileinfo['filename']
@@ -77,26 +83,30 @@ def process(platform_tag=None, before_build=None, package_name=None,
             elif fileinfo['packagetype'] == 'sdist':
                 sdist = fileinfo
 
-        missing = sorted(set(required_pythons) - set(wheels_pythons))
-
-        if not missing and not ignore_existing:
-            print('all wheels present')
-            continue
+        if build_existing:
+            missing = sorted(set(required_pythons))
+        else:
+            missing = sorted(set(required_pythons) - set(wheels_pythons))
+            if not missing:
+                print('all wheels present')
+                continue
 
         print('missing wheels:', missing)
 
-        tmpdir = tempfile.mkdtemp()
+        # We now build the missing wheels
+
         try:
 
+            tmpdir = tempfile.mkdtemp()
             print('Changing to {0}'.format(tmpdir))
             os.chdir(tmpdir)
 
-            print('  Fetching {0}'.format(sdist["url"]))
+            print('  Fetching {url}'.format(**sdist))
             req = requests.get(sdist['url'])
             with open(sdist['filename'], 'wb') as f:
                 f.write(req.content)
 
-            print('  Expanding {0}'.format(sdist["filename"]))
+            print('  Expanding {filename}'.format(**sdist))
             tar = tarfile.open(sdist['filename'], 'r:gz')
             tar.extractall(path='.')
 
@@ -107,6 +117,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
                 raise ValueError('Unexpected files/directories:', paths)
             print('  Go into directory {0}'.format(paths[0]))
             os.chdir(paths[0])
+
+            # We now configure cibuildwheel via environment variables
 
             print('  Running cibuildwheel')
 
@@ -133,6 +145,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
 
                 if pin_numpy:
                     pinned_version = MIN_NUMPY[python_tag][platform_tag]
+                    if pin_numpy_min is not None and LooseVersion(pinned_version) < pin_numpy_min:
+                        pinned_version = pin_numpy_min
                     os.environ['CIBW_BEFORE_BUILD'] = 'pip install numpy=={0}'.format(pinned_version)
                 elif before_build:
                     os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
@@ -155,8 +169,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
 @click.command()
 @click.argument('platform', type=click.Choice(['macosx', 'windows32', 'windows64', 'linux32', 'linux64']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
-@click.option('--ignore-existing/--no-ignore-existing', default=False)
-def main(platform, output_dir, ignore_existing):
+@click.option('--build-existing/--no-build-existing', default=False)
+def main(platform, output_dir, build_existing):
 
     output_dir = os.path.abspath(output_dir)
 
@@ -165,11 +179,12 @@ def main(platform, output_dir, ignore_existing):
 
     for package in packages:
         process(platform_tag=PLATFORM_TAGS[platform],
-                before_build=package.get('before_build', None),
+                before_build=package.get('before_build'),
                 pin_numpy=package.get('pin_numpy', False),
+                pin_numpy_min=package.get('pin_numpy_min'),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
                 test_command=package['test_command'],
                 test_requires=package['test_requires'],
                 output_dir=output_dir,
-                ignore_existing=ignore_existing)
+                build_existing=build_existing)
