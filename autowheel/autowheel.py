@@ -18,7 +18,7 @@ from .config import PYTHON_TAGS, PLATFORM_TAGS
 
 
 def process(platform_tag=None, before_build=None, package_name=None,
-            python_versions=None, output_dir=None, ignore_existing=False,
+            python_versions=None, output_dir=None, build_existing=False,
             test_command=None, test_requires=None, pin_numpy=False, pin_numpy_min=None):
 
     print('Processing {package_name}'.format(package_name=package_name))
@@ -86,7 +86,7 @@ def process(platform_tag=None, before_build=None, package_name=None,
         # Determine which ones are missing
         missing = sorted(set(required_pythons) - set(wheels_pythons))
 
-        if not missing and not ignore_existing:
+        if not missing and not build_existing:
             print('all wheels present')
             continue
 
@@ -168,8 +168,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
 @click.command()
 @click.argument('platform', type=click.Choice(['macosx', 'windows32', 'windows64', 'linux32', 'linux64']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
-@click.option('--ignore-existing/--no-ignore-existing', default=False)
-def main(platform, output_dir, ignore_existing):
+@click.option('--build-existing/--no-build-existing', default=False)
+def main(platform, output_dir, build_existing):
 
     output_dir = os.path.abspath(output_dir)
 
@@ -186,4 +186,4 @@ def main(platform, output_dir, ignore_existing):
                 test_command=package['test_command'],
                 test_requires=package['test_requires'],
                 output_dir=output_dir,
-                ignore_existing=ignore_existing)
+                build_existing=build_existing)

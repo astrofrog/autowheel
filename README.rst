@@ -4,7 +4,7 @@ About
 -----
 
 This package is a wrapper around the
-`cibuildwheel <https://github.com/joerick/cibuildwheel>`_ tool, and makes it
+`cibuildwheel <https://github.com/joerick/cibuildwheel>`__ tool, and makes it
 easy to automate building wheels from PyPI source releases rather than
 for a source repository.
 
@@ -18,15 +18,15 @@ Basic usage
 -----------
 
 To use autowheel, you should first follow the instructions for setting up
-`cibuildwheel <https://github.com/joerick/cibuildwheel>`_, but instead of
+`cibuildwheel <https://github.com/joerick/cibuildwheel>`__, but instead of
 running::
 
-    $PIP install cibuildwheel==0.9.4
+    pip install cibuildwheel==0.9.4
     cibuildwheel --output-dir wheelhouse
 
 You should instead run::
 
-    $PIP install autowheel
+    pip install autowheel
     autowheel platform --output-dir wheelhouse
 
 where platform is one of ``macos``, ``linux``, or ``windows``. In addition,
@@ -58,7 +58,10 @@ The way autowheel works is that it will look at all the releases of the package
 on PyPI that are more recent than the oldest version mentioned in the
 ``autowheel.yml`` file, and for each of them it will determine whether any
 wheels are missing. If so, then wheel are built for all Python versions
-specified, and placed in the output directory.
+specified, and placed in the output directory. To force all wheels to be built
+even if they already exist, use the ``--build-existing`` option::
+
+    autowheel platform --output-dir wheelhouse --build-existing
 
 Note that you can list multiple packages inside a single ``autowheel.yml`` file,
 and you can also list the same package multiple times with different
