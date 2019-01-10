@@ -6,15 +6,16 @@ import sys
 import click
 import tarfile
 import tempfile
+from distutils.version import LooseVersion
+
 import requests
 from yaml import load
-from distutils.version import LooseVersion
-from collections import defaultdict
 
 from cibuildwheel.__main__ import main as cibuildwheel
 
 from .numpy import MIN_NUMPY
 from .config import PYTHON_TAGS, PLATFORM_TAGS
+
 
 def process(platform_tag=None, before_build=None, package_name=None,
             python_versions=None, output_dir=None, ignore_existing=False,
@@ -30,6 +31,10 @@ def process(platform_tag=None, before_build=None, package_name=None,
     # which means that package versions in the range [0.1:0.2) will be built for
     # Python 2.7 and 3.5, and versions greater or equal to 0.2 will also be
     # built for Python 3.6. Versions before 0.1 won't be built.
+
+    # Start off by finding all specified package versions (as mentioned above,
+    # these are just the versions where the required Python versions change, but
+    # all versions in between and more recent will be checked/built too)
     package_versions = [LooseVersion(package_version) for package_version in python_versions]
     min_package_version = min(package_versions)
 
@@ -47,26 +52,27 @@ def process(platform_tag=None, before_build=None, package_name=None,
 
         print('Release: {release_version}... '.format(release_version=release_version), end='')
 
+        # Any package version older than the oldest specified one shouldn't be built
         if LooseVersion(release_version) < min_package_version:
             print('skipping')
             continue
 
         # Find the package version in the config that is equal to or is the most
         # recent one before the target release.
-        matching_version = max([package_version for package_version in package_versions if package_version <= LooseVersion(release_version)])
+        matching_version = max([package_version
+                                for package_version in package_versions
+                                if package_version <= LooseVersion(release_version)])
 
         # Figure out which Python versions are requested in the config
         required_pythons = python_versions[str(matching_version)]
 
         # Now determine which Python versions have already been built for the
-        # target OS.
+        # target OS and are on PyPI.
 
         files = pypi_data['releases'][release_version]
 
         wheels_pythons = []
-
         sdist = None
-
         for fileinfo in files:
             if fileinfo['packagetype'] == 'bdist_wheel':
                 filename = fileinfo['filename']
@@ -77,6 +83,7 @@ def process(platform_tag=None, before_build=None, package_name=None,
             elif fileinfo['packagetype'] == 'sdist':
                 sdist = fileinfo
 
+        # Determine which ones are missing
         missing = sorted(set(required_pythons) - set(wheels_pythons))
 
         if not missing and not ignore_existing:
@@ -85,18 +92,20 @@ def process(platform_tag=None, before_build=None, package_name=None,
 
         print('missing wheels:', missing)
 
-        tmpdir = tempfile.mkdtemp()
+        # We now build the missing wheels
+
         try:
 
+            tmpdir = tempfile.mkdtemp()
             print('Changing to {0}'.format(tmpdir))
             os.chdir(tmpdir)
 
-            print('  Fetching {0}'.format(sdist["url"]))
+            print('  Fetching {url}'.format(**sdist))
             req = requests.get(sdist['url'])
             with open(sdist['filename'], 'wb') as f:
                 f.write(req.content)
 
-            print('  Expanding {0}'.format(sdist["filename"]))
+            print('  Expanding {filename}'.format(**sdist))
             tar = tarfile.open(sdist['filename'], 'r:gz')
             tar.extractall(path='.')
 
@@ -107,6 +116,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
                 raise ValueError('Unexpected files/directories:', paths)
             print('  Go into directory {0}'.format(paths[0]))
             os.chdir(paths[0])
+
+            # We now configure cibuildwheel via environment variables
 
             print('  Running cibuildwheel')
 
