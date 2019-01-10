@@ -6,3 +6,12 @@
     '0.7':
       - cp27
       - cp36
+
+- package_name: fast-histogram
+  pin_numpy: true
+  pin_numpy_min: 1.13
+  test_command: pytest -p no:warnings --pyargs fast_histogram -k test_non_contiguous
+  test_requires: pytest hypothesis numpy==1.15.4
+  python_versions:
+    '0.7':
+      - cp36

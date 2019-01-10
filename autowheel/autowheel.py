@@ -18,7 +18,7 @@ from .config import PYTHON_TAGS, PLATFORM_TAGS
 
 def process(platform_tag=None, before_build=None, package_name=None,
             python_versions=None, output_dir=None, ignore_existing=False,
-            test_command=None, test_requires=None, pin_numpy=False):
+            test_command=None, test_requires=None, pin_numpy=False, pin_numpy_min=None):
 
     print('Processing {package_name}'.format(package_name=package_name))
 
@@ -133,6 +133,8 @@ def process(platform_tag=None, before_build=None, package_name=None,
 
                 if pin_numpy:
                     pinned_version = MIN_NUMPY[python_tag][platform_tag]
+                    if pin_numpy_min is not None and LooseVersion(pinned_version) < pin_numpy_min:
+                        pinned_version = pin_numpy_min
                     os.environ['CIBW_BEFORE_BUILD'] = 'pip install numpy=={0}'.format(pinned_version)
                 elif before_build:
                     os.environ['CIBW_BEFORE_BUILD'] = str(before_build)
@@ -165,8 +167,9 @@ def main(platform, output_dir, ignore_existing):
 
     for package in packages:
         process(platform_tag=PLATFORM_TAGS[platform],
-                before_build=package.get('before_build', None),
+                before_build=package.get('before_build'),
                 pin_numpy=package.get('pin_numpy', False),
+                pin_numpy_min=package.get('pin_numpy_min'),
                 package_name=package['package_name'],
                 python_versions=package['python_versions'],
                 test_command=package['test_command'],
