@@ -23,5 +23,5 @@ install:
 script:
   - cd tests
   - mkdir wheelhouse
-  - autowheel $PLATFORM --output-dir=wheelhouse --ignore-existing
+  - autowheel $PLATFORM --output-dir=wheelhouse --no-ignore-existing
   - ls wheelhouse
