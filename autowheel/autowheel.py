@@ -83,12 +83,13 @@ def process(platform_tag=None, before_build=None, package_name=None,
             elif fileinfo['packagetype'] == 'sdist':
                 sdist = fileinfo
 
-        # Determine which ones are missing
-        missing = sorted(set(required_pythons) - set(wheels_pythons))
-
-        if not missing and not build_existing:
-            print('all wheels present')
-            continue
+        if build_existing:
+            missing = sorted(set(required_pythons))
+        else:
+            missing = sorted(set(required_pythons) - set(wheels_pythons))
+            if not missing:
+                print('all wheels present')
+                continue
 
         print('missing wheels:', missing)
 
