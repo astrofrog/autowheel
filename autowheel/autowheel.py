@@ -48,7 +48,10 @@ def process(platform_tag=None, before_build=None, package_name=None,
     # Loop over all releases on PyPI, and check what wheels should be built for
     # each release. Wheels that already exist on PyPI won't be built since they
     # can't be replaced.
-    for release_version in pypi_data['releases']:
+    for release_version in sorted(pypi_data['releases']):
+
+        if 'rc' in release_version:
+            continue
 
         print('Release: {release_version}... '.format(release_version=release_version), end='')
 
