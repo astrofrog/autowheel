@@ -172,8 +172,11 @@ def process(platform_tag=None, before_build=None, package_name=None,
 @click.command()
 @click.argument('platform', type=click.Choice(['macosx', 'windows32', 'windows64', 'linux32', 'linux64']))
 @click.option('--output-dir', type=click.Path(exists=True), default='.')
+@click.option('--package', type=str, default=None)
 @click.option('--build-existing/--no-build-existing', default=False)
-def main(platform, output_dir, build_existing):
+def main(platform, output_dir, package, build_existing):
+
+    target_package_name = package
 
     output_dir = os.path.abspath(output_dir)
 
@@ -181,6 +184,10 @@ def main(platform, output_dir, build_existing):
         packages = load(f)
 
     for package in packages:
+
+        if target_package_name is not None and target_package_name != package['package_name']:
+            continue
+
         process(platform_tag=PLATFORM_TAGS[platform],
                 before_build=package.get('before_build'),
                 pin_numpy=package.get('pin_numpy', False),
