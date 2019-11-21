@@ -6,6 +6,7 @@ import sys
 import click
 import tarfile
 import tempfile
+from fnmatch import fnmatch
 from distutils.version import LooseVersion
 
 import requests
@@ -70,7 +71,9 @@ def process(platform_tag=None, before_build=None, package_name=None,
         required_pythons = python_versions[str(matching_version)]
 
         # Now determine which Python versions have already been built for the
-        # target OS and are on PyPI.
+        # target OS and are on PyPI. Note that for a given platform there are
+        # multiple possible tags. If *any* of the platform tags match, we
+        # consider the wheel already built.
 
         files = pypi_data['releases'][release_version]
 
@@ -79,7 +82,7 @@ def process(platform_tag=None, before_build=None, package_name=None,
         for fileinfo in files:
             if fileinfo['packagetype'] == 'bdist_wheel':
                 filename = fileinfo['filename']
-                if platform_tag in filename:
+                if fnmatch(filename, '*{0}*'.format(platform_tag)):
                     for python_tag in PYTHON_TAGS:
                         if python_tag in filename:
                             wheels_pythons.append(python_tag)
