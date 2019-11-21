@@ -2,6 +2,7 @@
 # against - based on what versions wheels are available for.
 from distutils.version import LooseVersion
 from collections import defaultdict
+from fnmatch import fnmatch
 
 import requests
 
@@ -35,7 +36,7 @@ for version in sorted(versions, key=lambda x: LooseVersion(x)):
             for python_tag in PYTHON_TAGS:
                 if python_tag in filename:
                     for platform_tag in PLATFORM_TAGS.values():
-                        if platform_tag in filename:
+                        if fnmatch(filename, '*{0}*'.format(platform_tag)):
                             if (platform_tag not in MIN_NUMPY[python_tag] or
                                     MIN_NUMPY[python_tag][platform_tag].split('.')[:2] == version.split('.')[:2]):
                                 MIN_NUMPY[python_tag][platform_tag] = version
